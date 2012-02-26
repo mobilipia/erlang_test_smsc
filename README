@@ -1,0 +1,11 @@
+Pretty simple SMSC written with OSERL 1.3 library
+
+Features:
+ * CLI test smsc (BIND_TRANSMITTER, BIND_RECEIVER, BIND_TRANSCEIVER complient)
+ * Auth options can be specify by command line arguments or configuration file
+ * Catched smpp packed can be printed to log file or to console
+
+Installation:
+ * make sure that rebar is installed
+ * $ rebar compile
+ * 

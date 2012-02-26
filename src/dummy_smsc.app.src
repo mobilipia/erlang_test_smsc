@@ -1,0 +1,12 @@
+{
+	application,
+	dummy_smsc,
+	[
+		{description, "Dummy SMSC for testing purposes"},
+		{vsn, "0.0.1"},
+		{registered, []},
+		{applications, [kernel,stdlib]},
+		{mod, { dummy_smsc_app, []}},
+		{env, []}
+	]
+}.
