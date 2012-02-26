@@ -8,4 +8,6 @@ Features:
 Installation:
  * make sure that rebar is installed
  * $ rebar compile
- * . . .
+ * $ erl -name node1@localhost -pa ebin -smsc system_id TEST -smsc password TEST -run dummy_smsc
+where TEST is system_id and TEST is est password
+ * try to connect to port 2775 with BIND_TRANSCEIVER

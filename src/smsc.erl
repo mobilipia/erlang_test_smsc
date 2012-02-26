@@ -5,7 +5,7 @@
 -include_lib("oserl/include/oserl.hrl").
 -include("records.hrl").
 
--export([start_link/0, start_link/1, info/0]).
+-export([start_link/0, start_link/1]).
 
 -export([init/1,
          handle_bind/3,
@@ -32,27 +32,33 @@ start_link([]) ->
 start_link([Args]) ->
     gen_smsc:start_link({local, ?SERVER}, ?MODULE, [[Args]], []).
 
-info()->
-	gen_server:call(?SERVER, info).
-
 init([Params]) ->
+	Self = self(),
+	proc_lib:spawn(fun() ->
+		Result = gen_smsc:listen_start(Self,params:get(Params, port, ?DEFAULT_PORT), infinity, ?DEFAULT_SMPP_TIMERS),
+		gen_smsc:cast(Self,{listen,Result})
+	end),
     {
 		ok,
 		#dummy_smsc_state{
 			smsc_params = [
 				{system_id, params:get(Params, system_id, ?DEFAULT_SYSTEM_ID)},
 				{password, params:get(Params, password, ?DEFAULT_PSWD)}
-			]
+			],
+			message_id=0
 		}
 	}.
 
-handle_bind({_CmdName, _Session, _Pdu, _IpAddr}, _From, State) ->
+handle_bind({_CmdName, _Session, Pdu, IpAddr}, _From, State) ->
+	io:format("Try to bind from ~p with ~p~n",[IpAddr, dict:to_list(Pdu)]),
+
     ParamList = State#dummy_smsc_state.smsc_params,
     {reply, {ok, ParamList}, State}.
 
-handle_operation({_CmdName, _Session, _Pdu}, _From, S) ->
-    % Don't know how to handle CmdName
-    {reply, {error, ?ESME_RINVCMDID, []}, S}.
+handle_operation({CmdName, _Session, Pdu}, _From, State) ->
+	NewMessageId = State#dummy_smsc_state.message_id+1,
+	io:format("Got ~p with ~p~n",[CmdName, dict:to_list(Pdu)]),
+	{reply, {ok, [{message_id, integer_to_list(NewMessageId)}]}, State#dummy_smsc_state{message_id=NewMessageId}}.
 
 handle_unbind({unbind, _Session, _Pdu}, _From, State) -> 
     {reply, ok, State}.
@@ -75,7 +81,3 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================

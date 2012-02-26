@@ -1,6 +1,7 @@
 -record(
 	dummy_smsc_state,
 	{
-		smsc_params
+		smsc_params,
+		message_id
 	}   
 ).
