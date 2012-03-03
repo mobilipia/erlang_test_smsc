@@ -10,14 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-	CliArguments = init:get_argument(smsc),
-	case CliArguments of
-		{ok, Params} ->
-			SmscParams = Params;
-		_ ->
-			SmscParams = []
-	end,
-    dummy_smsc_sup:start_link(params:normalize_keys(SmscParams)).
+    dummy_smsc_sup:start_link().
 
 stop(_State) ->
     ok.
