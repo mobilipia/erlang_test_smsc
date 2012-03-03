@@ -24,12 +24,15 @@ get(Name, DefaultValue)->
 	end.
 
 start_link() ->
+	log4erl:debug("Starting app property"),
   gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 stop() ->
+	log4erl:debug("Stopping app_property"),
   gen_server:cast(?SERVER, stop).
 
 init([]) ->
+	log4erl:debug("Initializing app property"),
 	PropertyTable = ets:new(property_table,[]),
 	{ok, [PropertyTable],0}.
 
@@ -52,6 +55,7 @@ handle_cast({set, Name, Value}, [Table]) ->
 handle_info(timeout, State) ->
 	{ok, CliArguments} = init:get_argument(smsc),
 	Args = params:normalize_keys(CliArguments),
+	log4erl:debug("Filling app properties with ~p",[Args]),
 	lists:foreach(
 		fun({Name, Value}) ->
 			app_property:set(Name, Value)

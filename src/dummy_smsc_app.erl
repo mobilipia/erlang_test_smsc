@@ -10,7 +10,9 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
+	log4erl:debug("Starting smsc application"),
     dummy_smsc_sup:start_link().
 
 stop(_State) ->
+	log4erl:debug("Application stopped"),
     ok.

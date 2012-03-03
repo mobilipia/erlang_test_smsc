@@ -25,12 +25,17 @@
 -define(DEFAULT_HOST, {127,0,0,1}).
 
 start_link()->
+	log4erl:debug("Starting main smsc module"),
     gen_smsc:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
+	log4erl:debug("Initializing main smsc module"),
 	Self = self(),
 	proc_lib:spawn(fun() ->
-		Result = gen_smsc:listen_start(Self,app_property:get(port, ?DEFAULT_PORT), infinity, ?DEFAULT_SMPP_TIMERS),
+		Port = app_property:get(port, ?DEFAULT_PORT),
+		log4erl:debug("Try to listen on port ~p",[Port]), 
+		Result = gen_smsc:listen_start(Self,Port, infinity, ?DEFAULT_SMPP_TIMERS),
+		log4erl:debug("Got result for listen ~p",[Result]),
 		gen_smsc:cast(Self,{listen,Result})
 	end),
     {
@@ -45,14 +50,15 @@ init([]) ->
 	}.
 
 handle_bind({_CmdName, _Session, Pdu, IpAddr}, _From, State) ->
-	io:format("Try to bind from ~p with ~p~n",[IpAddr, dict:to_list(Pdu)]),
+	log4erl:info("Try to bind from ~p with ~p~n",[IpAddr, dict:to_list(Pdu)]),
     ParamList = State#dummy_smsc_state.smsc_params,
     {reply, {ok, ParamList}, State}.
 	%%{reply, {error, ?ESME_RINVSYSID, []}, State}.
 
 handle_operation({CmdName, _Session, Pdu}, _From, State) ->
 	NewMessageId = State#dummy_smsc_state.message_id+1,
-	io:format("Got ~p with ~p~n",[CmdName, dict:to_list(Pdu)]),
+	log4erl:info("Got ~p with ~p~n",[CmdName, dict:to_list(Pdu)]),
+	log4erl:debug("Generated message id=~p",[NewMessageId]),
 	Message = dict:fetch(short_message, Pdu),
 	case sm:udhi(Pdu) of
 		true ->
@@ -60,7 +66,7 @@ handle_operation({CmdName, _Session, Pdu}, _From, State) ->
 		_ ->
 			Rest = Message
 	end,
-	io:format("Message ~p~n",[Rest]),
+	log4erl:info("Message ~p~n",[Rest]),
 	{reply, {ok, [{message_id, integer_to_list(NewMessageId)}]}, State#dummy_smsc_state{message_id=NewMessageId}}.
 
 handle_unbind({unbind, _Session, _Pdu}, _From, State) -> 

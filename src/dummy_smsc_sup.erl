@@ -17,6 +17,7 @@
 %% ===================================================================
 
 start_link()->
+	log4erl:debug("Starting smsc supervisor"),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %% ===================================================================
@@ -24,6 +25,7 @@ start_link()->
 %% ===================================================================
 
 init([]) ->
+	log4erl:debug("Initializing smsc supervisor"),
 	{ok, 
 		{
 			{one_for_one, 5, 10}, 
